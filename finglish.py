@@ -5,7 +5,11 @@ from dotenv import load_dotenv
 
 from _audio import text_to_speech
 
-st.session_state['farsi_word'] = ""
+# Initialize session state
+if 'farsi_word' not in st.session_state:
+    st.session_state['farsi_word'] = ""
+if 'finglish_word' not in st.session_state:
+    st.session_state['finglish_word'] = ""
 
 # Load environment variables
 load_dotenv()
@@ -14,7 +18,7 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 st.title('English ⇨ Farsi Translator')
 english = st.text_input('Enter English (word or phrase) to translate to Finglish')
-if st.button('Translate ⇨ Finglish') or english:
+if st.button('Translate ⇨ Finglish'):
     client = OpenAI(
         api_key=OPENAI_API_KEY,
     )
@@ -29,7 +33,7 @@ if st.button('Translate ⇨ Finglish') or english:
     for chunk in stream:
         if chunk.choices[0].delta.content is not None:
             write_stream += chunk.choices[0].delta.content
-    st.write(write_stream)
+    st.session_state['finglish_word'] = write_stream
 
     farsi = client.chat.completions.create(
         model="gpt-5.4-mini",
@@ -42,16 +46,21 @@ if st.button('Translate ⇨ Finglish') or english:
     for chunk in farsi:
         if chunk.choices[0].delta.content is not None:
             write_farsi += chunk.choices[0].delta.content
-    st.write(write_farsi)
     st.session_state['farsi_word'] = write_farsi
 
-    # Audio Gen
-    if st.button('Speak'):
-        try:
-            aud = text_to_speech(st.session_state['farsi_word'])
-            st.audio(aud, format="audio/mp3", start_time=0)
-        except Exception as e:
-            st.error(f"Failed to generate speech: {e}")
+# Display stored results
+if st.session_state['finglish_word']:
+    st.write(st.session_state['finglish_word'])
+if st.session_state['farsi_word']:
+    st.write(st.session_state['farsi_word'])
+
+# Audio Gen - outside translation block
+if st.session_state['farsi_word'] and st.button('Speak'):
+    try:
+        aud = text_to_speech(st.session_state['farsi_word'])
+        st.audio(aud, format="audio/mp3", start_time=0)
+    except Exception as e:
+        st.error(f"Failed to generate speech: {e}")
 
 st.divider()
 
