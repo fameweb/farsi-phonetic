@@ -8,7 +8,7 @@ VOICE_API_KEY = os.getenv('VOICE_API_KEY')
 def text_to_speech(text):
     
     CHUNK_SIZE = 1024
-    url = "https://api.elevenlabs.io/v1/text-to-speech/5QIAv78VQ3Cd1NvsmM5Q"
+    url = "https://api.elevenlabs.io/v1/text-to-speech/uQhw7tLMkUTkio2epxYQ"
 
     headers = {
     "Accept": "audio/mpeg",
