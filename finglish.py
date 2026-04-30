@@ -20,7 +20,7 @@ if st.button('Translate ⇨ Finglish') or english:
     )
 
     stream = client.chat.completions.create(
-        model="gpt-4-turbo-preview",
+        model="gpt-5.4-mini",
         messages=[{"role": "system", "content": "translate this to Farsi in phonetics. Only state the phonetics."}
             ,{"role": "user", "content": english}],
         stream=True,
@@ -32,7 +32,7 @@ if st.button('Translate ⇨ Finglish') or english:
     st.write(write_stream)
 
     farsi = client.chat.completions.create(
-        model="gpt-4-turbo-preview",
+        model="gpt-5.4-mini",
         messages=[{"role": "system", "content": "translate this to Farsi. Only state the farsi."}
             ,{"role": "user", "content": write_stream}],
         stream=True,
@@ -64,7 +64,7 @@ if st.button('Translate ⇨ English') or phonetic:
         api_key=OPENAI_API_KEY,
     )
     stream = client.chat.completions.create(
-        model="gpt-4-turbo-preview",
+        model="gpt-5.4-mini",
         messages=[{"role": "system", "content": "help me translate the Farsi phonetics to english. Only state the english meaning."}
             ,{"role": "user", "content": phonetic}],
         stream=True,
