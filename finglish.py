@@ -21,7 +21,7 @@ if st.button('Translate ⇨ Finglish') or english:
 
     stream = client.chat.completions.create(
         model="gpt-5.4-mini",
-        messages=[{"role": "system", "content": "translate this to Farsi in phonetics. Only state the phonetics."}
+        messages=[{"role": "system", "content": "You are a Finglish translator. Translate the English text to Finglish (Farsi written in Latin/Roman alphabet). Only respond with the Finglish transliteration, nothing else. For example: 'How are you' -> 'chetori', 'Thank you' -> 'mersi' or 'mamnoon'."}
             ,{"role": "user", "content": english}],
         stream=True,
     )
