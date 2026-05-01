@@ -1,12 +1,8 @@
 import os
-import pathlib
-import logging
-import shutil
 import streamlit as st
 from openai import OpenAI
 from dotenv import load_dotenv
 from _audio import text_to_speech
-from bs4 import BeautifulSoup
 
 # Initialize session state
 if 'farsi_word' not in st.session_state:
@@ -19,29 +15,13 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 ADSENSE_CLIENT_ID = os.getenv('ADSENSE_CLIENT_ID')
 
-adsense_url = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={ADSENSE_CLIENT_ID}"
-GA_AdSense = """
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={ADSENSE_CLIENT_ID}" crossorigin="anonymous">></script>
-    <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
+# Google AdSense script - injected via st.markdown for cloud compatibility
+GA_AdSense = f"""
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={ADSENSE_CLIENT_ID}" crossorigin="anonymous"></script>
 """
 
-# Insert the script in the head tag of the static template inside your virtual
-index_path = pathlib.Path(st.__file__).parent / "static" / "index.html"
-logging.info(f'editing {index_path}')
-soup = BeautifulSoup(index_path.read_text(), features="html.parser")
-if not soup.find("script", src=adsense_url):
-    bck_index = index_path.with_suffix('.bck')
-    if bck_index.exists():
-        shutil.copy(bck_index, index_path)
-    else:
-        shutil.copy(index_path, bck_index)
-    html = str(soup)
-    new_html = html.replace('<head>', '<head>\n' + GA_AdSense)
-    index_path.write_text(new_html)
-
 st.set_page_config(page_title="English to Farsi Translation", page_icon=":iran:")
+st.markdown(GA_AdSense, unsafe_allow_html=True)
 st.title('English ⇨ Farsi Translator')
 english = st.text_input('Enter English (word or phrase) to translate to Finglish')
 if st.button('Translate ⇨ Finglish'):
