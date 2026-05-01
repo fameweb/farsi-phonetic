@@ -20,7 +20,7 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 ADSENSE_CLIENT_ID = os.getenv('ADSENSE_CLIENT_ID')
 
 adsense_url = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={ADSENSE_CLIENT_ID}"
-GA_AdSense_ = """
+GA_AdSense = """
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={ADSENSE_CLIENT_ID}" crossorigin="anonymous">></script>
     <script>
         (adsbygoogle = window.adsbygoogle || []).push({});
@@ -31,7 +31,7 @@ GA_AdSense_ = """
 index_path = pathlib.Path(st.__file__).parent / "static" / "index.html"
 logging.info(f'editing {index_path}')
 soup = BeautifulSoup(index_path.read_text(), features="html.parser")
-if not soup.find(script, src=adsense_url):
+if not soup.find("script", src=adsense_url):
     bck_index = index_path.with_suffix('.bck')
     if bck_index.exists():
         shutil.copy(bck_index, index_path)
