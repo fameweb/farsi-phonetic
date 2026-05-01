@@ -15,7 +15,7 @@ if 'finglish_word' not in st.session_state:
 load_dotenv()
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
-
+st.set_page_config(page_title="English to Farsi Translation", page_icon=":iran:")
 st.title('English ⇨ Farsi Translator')
 english = st.text_input('Enter English (word or phrase) to translate to Finglish')
 if st.button('Translate ⇨ Finglish'):
