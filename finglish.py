@@ -16,36 +16,38 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 st.set_page_config(page_title="English to Farsi Translation", page_icon=":iran:")
 
 st.title('English ⇨ Farsi Translator')
-english = st.text_input('Enter English (word or phrase) to translate to Finglish')
-if st.button('Translate ⇨ Finglish'):
-    client = OpenAI(
-        api_key=OPENAI_API_KEY,
-    )
+with st.form(key='english_to_farsi_form'):
+    english = st.text_input('Enter English (word or phrase) to translate to Finglish')
+    submit_english = st.form_submit_button('Translate ⇨ Finglish')
+    if submit_english:
+        client = OpenAI(
+            api_key=OPENAI_API_KEY,
+        )
 
-    stream = client.chat.completions.create(
-        model="gpt-5.4-mini",
-        messages=[{"role": "system", "content": "You are a Finglish translator. Translate the English text to Finglish (Farsi written in Latin/Roman alphabet). Only respond with the Finglish transliteration, nothing else. For example: 'How are you' -> 'chetori', 'Thank you' -> 'mersi' or 'mamnoon'."}
-            ,{"role": "user", "content": english}],
-        stream=True,
-    )
-    write_stream = ""
-    for chunk in stream:
-        if chunk.choices[0].delta.content is not None:
-            write_stream += chunk.choices[0].delta.content
-    st.session_state['finglish_word'] = write_stream
+        stream = client.chat.completions.create(
+            model="gpt-5.4-mini",
+            messages=[{"role": "system", "content": "You are a Finglish translator. Translate the English text to Finglish (Farsi written in Latin/Roman alphabet). Only respond with the Finglish transliteration, nothing else. For example: 'How are you' -> 'chetori', 'Thank you' -> 'mersi' or 'mamnoon'."}
+                ,{"role": "user", "content": english}],
+            stream=True,
+        )
+        write_stream = ""
+        for chunk in stream:
+            if chunk.choices[0].delta.content is not None:
+                write_stream += chunk.choices[0].delta.content
+        st.session_state['finglish_word'] = write_stream
 
-    farsi = client.chat.completions.create(
-        model="gpt-5.4-mini",
-        messages=[{"role": "system", "content": "translate this to Farsi. Only state the farsi."}
-            ,{"role": "user", "content": write_stream}],
-        stream=True,
-    )
-    write_farsi = ""
+        farsi = client.chat.completions.create(
+            model="gpt-5.4-mini",
+            messages=[{"role": "system", "content": "translate this to Farsi. Only state the farsi."}
+                ,{"role": "user", "content": write_stream}],
+            stream=True,
+        )
+        write_farsi = ""
 
-    for chunk in farsi:
-        if chunk.choices[0].delta.content is not None:
-            write_farsi += chunk.choices[0].delta.content
-    st.session_state['farsi_word'] = write_farsi
+        for chunk in farsi:
+            if chunk.choices[0].delta.content is not None:
+                write_farsi += chunk.choices[0].delta.content
+        st.session_state['farsi_word'] = write_farsi
 
 # Display stored results
 if st.session_state['finglish_word']:
@@ -65,20 +67,21 @@ st.divider()
 
 
 st.title('Farsi ⇨ English Translator')
-phonetic = st.text_input('Enter farsi phonetic (word or phrase) to translate to English')
-if st.button('Translate ⇨ English') or phonetic:
-
-    client = OpenAI(
-        api_key=OPENAI_API_KEY,
-    )
-    stream = client.chat.completions.create(
-        model="gpt-5.4-mini",
-        messages=[{"role": "system", "content": "help me translate the Farsi phonetics to english. Only state the english meaning."}
-            ,{"role": "user", "content": phonetic}],
-        stream=True,
-    )
-    write_stream = ""
-    for chunk in stream:
-        if chunk.choices[0].delta.content is not None:
-            write_stream += chunk.choices[0].delta.content
-    st.write(write_stream)
+with st.form(key='farsi_to_english_form'):
+    phonetic = st.text_input('Enter farsi phonetic (word or phrase) to translate to English')
+    submit_farsi = st.form_submit_button('Translate ⇨ English')
+    if submit_farsi and phonetic:
+        client = OpenAI(
+            api_key=OPENAI_API_KEY,
+        )
+        stream = client.chat.completions.create(
+            model="gpt-5.4-mini",
+            messages=[{"role": "system", "content": "help me translate the Farsi phonetics to english. Only state the english meaning."}
+                ,{"role": "user", "content": phonetic}],
+            stream=True,
+        )
+        write_stream = ""
+        for chunk in stream:
+            if chunk.choices[0].delta.content is not None:
+                write_stream += chunk.choices[0].delta.content
+        st.write(write_stream)
