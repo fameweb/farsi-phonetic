@@ -9,7 +9,7 @@ VOICE_API_KEY = os.getenv('VOICE_API_KEY')
 def text_to_speech(text):
 
     CHUNK_SIZE = 1024
-    url = "https://api.elevenlabs.io/v1/text-to-speech/uQhw7tLMkUTkio2epxYQ"
+    url = "https://api.elevenlabs.io/v1/text-to-speech/LaaUN1T7Yu9yqBIZjz5c"
 
     headers = {
     "Accept": "audio/mpeg",
@@ -20,6 +20,7 @@ def text_to_speech(text):
     data = {
     "text": text,
     "model_id": "eleven_multilingual_v2",
+    "language_code": "tr", # For some reason 'fa' isn't supported, but 'tr' (Turkish) is close enough for Farsi phonetics
     "voice_settings": {
         "stability": 0.7,
         "similarity_boost": 0.2
