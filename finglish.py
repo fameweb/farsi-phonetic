@@ -17,7 +17,7 @@ ADSENSE_CLIENT_ID = os.getenv('ADSENSE_CLIENT_ID')
 
 # Google AdSense script - injected via st.markdown for cloud compatibility
 GA_AdSense = f"""
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={ADSENSE_CLIENT_ID}" crossorigin="anonymous"></script>
+    <meta name="google-adsense-account" content="{ADSENSE_CLIENT_ID}">
 """
 
 st.set_page_config(page_title="English to Farsi Translation", page_icon=":iran:")
