@@ -85,3 +85,6 @@ with st.form(key='farsi_to_english_form'):
             if chunk.choices[0].delta.content is not None:
                 write_stream += chunk.choices[0].delta.content
         st.write(write_stream)
+
+st.divider()
+st.caption("Credits due: The original application was created by [@mei-chen](https://github.com/mei-chen). This version is a modified fork that fixes some build bugs and utilizes a more efficient translation model.")
