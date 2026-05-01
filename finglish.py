@@ -13,11 +13,21 @@ if 'finglish_word' not in st.session_state:
 # Load environment variables
 load_dotenv()
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-ADSENSE_CLIENT_ID = os.getenv('ADSENSE_CLIENT_ID')
+ADSENSE_PUB_ID = os.getenv('ADSENSE_PUB_ID', 'pub-6412343453782641')
+ADSENSE_TAG_ID = os.getenv('ADSENSE_TAG_ID', 'f08c47fec0942fa0')
 
-# Google AdSense script - injected via st.markdown for cloud compatibility
+# Generate ads.txt for AdSense validation (fallback static file exists in repo)
+try:
+    ads_txt_content = f"google.com, {ADSENSE_PUB_ID}, DIRECT, {ADSENSE_TAG_ID}"
+    ads_txt_path = os.path.join(os.path.dirname(__file__), 'ads.txt')
+    with open(ads_txt_path, 'w') as f:
+        f.write(ads_txt_content)
+except PermissionError:
+    pass  # Use static ads.txt from repo
+
+# Google AdSense meta tag for validation
 GA_AdSense = f"""
-    <meta name="google-adsense-account" content="{ADSENSE_CLIENT_ID}">
+    <meta name="google-adsense-account" content="ca-{ADSENSE_PUB_ID}">
 """
 
 st.set_page_config(page_title="English to Farsi Translation", page_icon=":iran:")
