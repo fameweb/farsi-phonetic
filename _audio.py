@@ -22,8 +22,9 @@ def text_to_speech(text):
     "model_id": "eleven_multilingual_v2",
     "language_code": "tr", # For some reason 'fa' isn't supported, but 'tr' (Turkish) is close enough for Farsi phonetics
     "voice_settings": {
-        "stability": 0.7,
-        "similarity_boost": 0.2
+        "stability": 0.5,
+        "similarity_boost": 0.8,
+        "speed": 0.6
     }
     }
 
