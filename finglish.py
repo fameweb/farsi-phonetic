@@ -9,6 +9,15 @@ if 'farsi_word' not in st.session_state:
     st.session_state['farsi_word'] = ""
 if 'finglish_word' not in st.session_state:
     st.session_state['finglish_word'] = ""
+if 'recent_eng_to_farsi' not in st.session_state:
+    st.session_state['recent_eng_to_farsi'] = []
+if 'recent_farsi_to_eng' not in st.session_state:
+    st.session_state['recent_farsi_to_eng'] = []
+
+def add_translation(history_key, entry, max_items=20):
+    """Add a translation to history, keeping only the last max_items."""
+    st.session_state[history_key].insert(0, entry)
+    st.session_state[history_key] = st.session_state[history_key][:max_items]
 
 # Load environment variables and page configs
 load_dotenv()
@@ -49,6 +58,13 @@ with st.form(key='english_to_farsi_form'):
                 write_farsi += chunk.choices[0].delta.content
         st.session_state['farsi_word'] = write_farsi
 
+        # Add to recent translations
+        add_translation('recent_eng_to_farsi', {
+            'english': english,
+            'finglish': write_stream,
+            'farsi': write_farsi
+        })
+
 # Display stored results
 if st.session_state['finglish_word']:
     st.write(st.session_state['finglish_word'])
@@ -62,6 +78,15 @@ if st.session_state['farsi_word'] and st.button('Speak'):
         st.audio(aud, format="audio/mp3", start_time=0)
     except Exception as e:
         st.error(f"Failed to generate speech: {e}")
+
+# Recent translations for English to Farsi
+if st.session_state['recent_eng_to_farsi']:
+    with st.expander("Recent translations", expanded=False):
+        for i, t in enumerate(st.session_state['recent_eng_to_farsi']):
+            st.markdown(f"**{t['english']}** → {t['finglish']} ({t['farsi']})")
+        if st.button("Clear history", key="clear_eng_to_farsi"):
+            st.session_state['recent_eng_to_farsi'] = []
+            st.rerun()
 
 st.divider()
 
@@ -85,6 +110,21 @@ with st.form(key='farsi_to_english_form'):
             if chunk.choices[0].delta.content is not None:
                 write_stream += chunk.choices[0].delta.content
         st.write(write_stream)
+
+        # Add to recent translations
+        add_translation('recent_farsi_to_eng', {
+            'phonetic': phonetic,
+            'english': write_stream
+        })
+
+# Recent translations for Farsi to English
+if st.session_state['recent_farsi_to_eng']:
+    with st.expander("Recent translations", expanded=False):
+        for i, t in enumerate(st.session_state['recent_farsi_to_eng']):
+            st.markdown(f"**{t['phonetic']}** → {t['english']}")
+        if st.button("Clear history", key="clear_farsi_to_eng"):
+            st.session_state['recent_farsi_to_eng'] = []
+            st.rerun()
 
 st.divider()
 st.caption("Credits due: The original application was created by [@mei-chen](https://github.com/mei-chen). This version is a modified fork that fixes some build bugs and utilizes a more efficient translation model.")
