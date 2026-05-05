@@ -1,23 +1,43 @@
 import os
+import json
 import streamlit as st
 from openai import OpenAI
 from dotenv import load_dotenv
+from streamlit_local_storage import LocalStorage
 from _audio import text_to_speech
+
+# Initialize local storage
+local_storage = LocalStorage()
 
 # Initialize session state
 if 'farsi_word' not in st.session_state:
     st.session_state['farsi_word'] = ""
 if 'finglish_word' not in st.session_state:
     st.session_state['finglish_word'] = ""
-if 'recent_eng_to_farsi' not in st.session_state:
-    st.session_state['recent_eng_to_farsi'] = []
-if 'recent_farsi_to_eng' not in st.session_state:
-    st.session_state['recent_farsi_to_eng'] = []
 
-def add_translation(history_key, entry, max_items=20):
-    """Add a translation to history, keeping only the last max_items."""
-    st.session_state[history_key].insert(0, entry)
-    st.session_state[history_key] = st.session_state[history_key][:max_items]
+def get_translations(key):
+    """Get translations from local storage."""
+    data = local_storage.getItem(key)
+    if data is None:
+        return []
+    if isinstance(data, list):
+        return data
+    try:
+        return json.loads(data)
+    except (json.JSONDecodeError, TypeError):
+        return []
+
+def add_translation(storage_key, entry, max_items=20):
+    """Add a translation to local storage history, keeping only the last max_items."""
+    history = get_translations(storage_key)
+    history.insert(0, entry)
+    history = history[:max_items]
+    local_storage.setItem(storage_key, history)
+    return history
+
+def clear_translations(storage_key):
+    """Clear translation history from local storage."""
+    local_storage.deleteItem(storage_key)
 
 # Load environment variables and page configs
 load_dotenv()
@@ -80,12 +100,13 @@ if st.session_state['farsi_word'] and st.button('Speak'):
         st.error(f"Failed to generate speech: {e}")
 
 # Recent translations for English to Farsi
-if st.session_state['recent_eng_to_farsi']:
+recent_eng_to_farsi = get_translations('recent_eng_to_farsi')
+if recent_eng_to_farsi:
     with st.expander("Recent translations", expanded=False):
-        for i, t in enumerate(st.session_state['recent_eng_to_farsi']):
+        for t in recent_eng_to_farsi:
             st.markdown(f"**{t['english']}** → {t['finglish']} ({t['farsi']})")
         if st.button("Clear history", key="clear_eng_to_farsi"):
-            st.session_state['recent_eng_to_farsi'] = []
+            clear_translations('recent_eng_to_farsi')
             st.rerun()
 
 st.divider()
@@ -118,12 +139,13 @@ with st.form(key='farsi_to_english_form'):
         })
 
 # Recent translations for Farsi to English
-if st.session_state['recent_farsi_to_eng']:
+recent_farsi_to_eng = get_translations('recent_farsi_to_eng')
+if recent_farsi_to_eng:
     with st.expander("Recent translations", expanded=False):
-        for i, t in enumerate(st.session_state['recent_farsi_to_eng']):
+        for t in recent_farsi_to_eng:
             st.markdown(f"**{t['phonetic']}** → {t['english']}")
         if st.button("Clear history", key="clear_farsi_to_eng"):
-            st.session_state['recent_farsi_to_eng'] = []
+            clear_translations('recent_farsi_to_eng')
             st.rerun()
 
 st.divider()
