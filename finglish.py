@@ -145,7 +145,7 @@ if st.session_state['english_word']:
 
 if st.session_state['english_word'] and st.button('Speak English'):
     try:
-        aud = text_to_speech(st.session_state['english_word'], language="english")
+        aud = text_to_speech(st.session_state['english_word'], "english")
         st.audio(aud, format="audio/mp3", start_time=0)
     except Exception as e:
         st.error(f"Failed to generate speech: {e}")
