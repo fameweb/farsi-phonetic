@@ -5,11 +5,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 VOICE_API_KEY = os.getenv('VOICE_API_KEY')
+FARSI_TTS_URL = "https://api.elevenlabs.io/v1/text-to-speech/LaaUN1T7Yu9yqBIZjz5c"
+ENGLISH_TTS_URL = "https://api.elevenlabs.io/v1/text-to-speech/JXb6f6Kw7oKOFAeiFSli"
 
-def text_to_speech(text):
+def text_to_speech(text, language="farsi"):
 
     CHUNK_SIZE = 1024
-    url = "https://api.elevenlabs.io/v1/text-to-speech/LaaUN1T7Yu9yqBIZjz5c"
+    if language == "english":
+        url = ENGLISH_TTS_URL
+    else:
+        url = FARSI_TTS_URL
 
     headers = {
     "Accept": "audio/mpeg",
