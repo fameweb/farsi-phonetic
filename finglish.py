@@ -14,6 +14,8 @@ if 'farsi_word' not in st.session_state:
     st.session_state['farsi_word'] = ""
 if 'finglish_word' not in st.session_state:
     st.session_state['finglish_word'] = ""
+if 'english_word' not in st.session_state:
+    st.session_state['english_word'] = ""
 
 def get_translations(key):
     """Get translations from local storage."""
@@ -130,13 +132,23 @@ with st.form(key='farsi_to_english_form'):
         for chunk in stream:
             if chunk.choices[0].delta.content is not None:
                 write_stream += chunk.choices[0].delta.content
-        st.write(write_stream)
+        st.session_state['english_word'] = write_stream
 
         # Add to recent translations
         add_translation('recent_farsi_to_eng', {
             'phonetic': phonetic,
             'english': write_stream
         })
+
+if st.session_state['english_word']:
+    st.write(st.session_state['english_word'])
+
+if st.session_state['english_word'] and st.button('Speak English'):
+    try:
+        aud = text_to_speech(st.session_state['english_word'], language="english")
+        st.audio(aud, format="audio/mp3", start_time=0)
+    except Exception as e:
+        st.error(f"Failed to generate speech: {e}")
 
 # Recent translations for Farsi to English
 recent_farsi_to_eng = get_translations('recent_farsi_to_eng')
