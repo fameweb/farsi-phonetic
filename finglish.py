@@ -57,7 +57,7 @@ with st.form(key='english_to_farsi_form'):
 
         stream = client.chat.completions.create(
             model="gpt-5.4-mini",
-            messages=[{"role": "system", "content": "You are a Finglish translator. Translate the English text to Finglish (Farsi written in Latin/Roman alphabet). Only respond with the Finglish transliteration, nothing else. For example: 'How are you' -> 'chetori', 'Thank you' -> 'mersi' or 'mamnoon'."}
+            messages=[{"role": "system", "content": "You are a Finglish translator. Translate the English text to Finglish (Farsi written in Latin/Roman alphabet). Only respond with the Finglish transliteration, nothing else. For example: 'How are you' -> 'chetori', 'Thank you' -> 'mersi' or 'mamnoon'. Do not return arabic letters. For 'alef' (ah) sound, instead of returning 'a', return 'ā'."}
                 ,{"role": "user", "content": english}],
             stream=True,
         )
