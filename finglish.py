@@ -123,7 +123,7 @@ with st.form(key='farsi_to_english_form'):
             api_key=OPENAI_API_KEY,
         )
         stream = client.chat.completions.create(
-            model="gpt-5.4-mini",
+            model="gpt-5.6-sol",
             messages=[{"role": "system", "content": "help me translate the Farsi phonetics to english. Only state the english meaning."}
                 ,{"role": "user", "content": phonetic}],
             stream=True,
