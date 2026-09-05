@@ -136,9 +136,11 @@ with st.form(key='english_to_farsi_form'):
 
 # Display stored results
 if st.session_state['finglish_word']:
-    st.write(st.session_state['finglish_word'])
+    st.markdown("**Finglish**")
+    st.subheader(st.session_state['finglish_word'])
 if st.session_state['farsi_word']:
-    st.write(st.session_state['farsi_word'])
+    st.markdown("**Farsi**")
+    st.subheader(st.session_state['farsi_word'])
 
 # Audio Gen - outside translation block
 if st.session_state['farsi_word'] and st.button('Speak'):
@@ -188,7 +190,8 @@ with st.form(key='farsi_to_english_form'):
         })
 
 if st.session_state['english_word']:
-    st.write(st.session_state['english_word'])
+    st.markdown("**English**")
+    st.subheader(st.session_state['english_word'])
 
 if st.session_state['english_word'] and st.button('Speak English'):
     try:
