@@ -1,10 +1,25 @@
 import os
 import json
+import re
 import streamlit as st
 from openai import OpenAI
 from dotenv import load_dotenv
 from streamlit_local_storage import LocalStorage
 from _audio import text_to_speech
+
+FINGLISH_MODEL = "gpt-5.6-sol"
+FINGLISH_OUTPUT_PATTERN = re.compile(r"""^[A-Za-zĀā0-9 .,!?;:'()\-]+$""")
+FINGLISH_TRANSLATOR_INSTRUCTIONS = """You are a Finglish translator. Translate English into
+natural, conversational Persian written only in Finglish (the Latin/Roman alphabet).
+
+Return exactly the Finglish translation and nothing else:
+- Never output Persian, Arabic, or any other non-Latin script.
+- Use only English letters, ā/Ā, digits, spaces, and ordinary punctuation.
+- Do not include labels, explanations, quotation marks, or translations in another script.
+- Render the Persian alef "ah"/long-a sound as ā, never as plain a or ah. For example,
+  parvāzet contains ā for the alef sound in "your flight".
+
+Example: "How was your flight?" -> "Parvāzet chetor bood?"."""
 
 # Initialize local storage
 local_storage = LocalStorage()
@@ -41,6 +56,43 @@ def clear_translations(storage_key):
     """Clear translation history from local storage."""
     local_storage.deleteItem(storage_key)
 
+def collect_stream_content(stream):
+    """Collect text content from an OpenAI streaming response."""
+    content = ""
+    for chunk in stream:
+        if chunk.choices[0].delta.content is not None:
+            content += chunk.choices[0].delta.content
+    return content.strip()
+
+def is_valid_finglish(value):
+    """Return whether a model response is a non-empty Latin-script Finglish string."""
+    return bool(value) and FINGLISH_OUTPUT_PATTERN.fullmatch(value) is not None
+
+def translate_to_finglish(client, english):
+    """Translate English and retry once if the result contains a forbidden script."""
+    for retrying in (False, True):
+        request = english
+        if retrying:
+            request = (
+                "Correction pass: translate the following original English text again. "
+                "The previous result violated the Latin-script-only requirement. "
+                f"Original English text: {english}"
+            )
+
+        stream = client.chat.completions.create(
+            model=FINGLISH_MODEL,
+            messages=[
+                {"role": "system", "content": FINGLISH_TRANSLATOR_INSTRUCTIONS},
+                {"role": "user", "content": request},
+            ],
+            stream=True,
+        )
+        finglish = collect_stream_content(stream)
+        if is_valid_finglish(finglish):
+            return finglish
+
+    return None
+
 # Load environment variables and page configs
 load_dotenv()
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -51,41 +103,36 @@ with st.form(key='english_to_farsi_form'):
     english = st.text_input('Enter English (word or phrase) to translate to Finglish')
     submit_english = st.form_submit_button('Translate ⇨ Finglish')
     if submit_english:
+        st.session_state['finglish_word'] = ""
+        st.session_state['farsi_word'] = ""
         client = OpenAI(
             api_key=OPENAI_API_KEY,
         )
 
-        stream = client.chat.completions.create(
-            model="gpt-5.4-mini",
-            messages=[{"role": "system", "content": "You are a Finglish translator. Translate the English text to Finglish (Farsi written in Latin/Roman alphabet). Only respond with the Finglish transliteration, nothing else (no arabic/farsi lettering or words). For example: 'How are you' -> 'chetori', 'Thank you' -> 'mersi' or 'mamnoon'. For 'alef' (ah) sound, instead of returning 'a' or 'ah', return 'ā'."}
-                ,{"role": "user", "content": english}],
-            stream=True,
-        )
-        write_stream = ""
-        for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
-                write_stream += chunk.choices[0].delta.content
-        st.session_state['finglish_word'] = write_stream
+        write_stream = translate_to_finglish(client, english)
+        if write_stream is None:
+            st.error(
+                "The translation did not comply with the Latin-script Finglish requirements. "
+                "Please try again."
+            )
+        else:
+            st.session_state['finglish_word'] = write_stream
 
-        farsi = client.chat.completions.create(
-            model="gpt-5.4-mini",
-            messages=[{"role": "system", "content": "translate this to Farsi. Only state the farsi."}
-                ,{"role": "user", "content": write_stream}],
-            stream=True,
-        )
-        write_farsi = ""
+            farsi = client.chat.completions.create(
+                model="gpt-5.4-mini",
+                messages=[{"role": "system", "content": "translate this to Farsi. Only state the farsi."}
+                    ,{"role": "user", "content": write_stream}],
+                stream=True,
+            )
+            write_farsi = collect_stream_content(farsi)
+            st.session_state['farsi_word'] = write_farsi
 
-        for chunk in farsi:
-            if chunk.choices[0].delta.content is not None:
-                write_farsi += chunk.choices[0].delta.content
-        st.session_state['farsi_word'] = write_farsi
-
-        # Add to recent translations
-        add_translation('recent_eng_to_farsi', {
-            'english': english,
-            'finglish': write_stream,
-            'farsi': write_farsi
-        })
+            # Add to recent translations
+            add_translation('recent_eng_to_farsi', {
+                'english': english,
+                'finglish': write_stream,
+                'farsi': write_farsi
+            })
 
 # Display stored results
 if st.session_state['finglish_word']:
